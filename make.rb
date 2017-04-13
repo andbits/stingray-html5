@@ -164,6 +164,7 @@ def parse_options(argv, options)
 		opts.on("-z", "--[no-]debug-info", "Enable debug information in all configurations (default)") { |v| options[:debug_info] = v }
 		opts.on("--[no-]engine", "Enable Engine target") { |v| options[:engine] = v }
 		opts.on("--[no-]editor", "Enable Editor target") { |v| options[:editor] = v }
+        opts.on("-s", "--sdk-dir DIRECTORY", "Specifies the path for the stingray-plugins-sdk.") { |v| options[:plugin_sdk] = v }
 		opts.separator ""
 		opts.separator "Other Options:"
 		opts.on("-k", "--kill", "Kill running processes") { |v| options[:kill] = v }
@@ -825,7 +826,13 @@ end
 report_block("plugin", "Configuring", true) do
 
 	# Install build system
-	copy_dir(find_package_root("stingray-plugin-sdk"), File.join($script_dir))
+    $sdk_dir = $options[:plugin_sdk] || find_package_root("stingray-plugin-sdk")
+    $destination = File.join($script_dir)
+    if $options[:plugin_sdk]
+        $destination = File.join($script_dir,"stingray_sdk/")
+        FileUtils.mkdir_p($destination) unless Dir.exists?($destination)
+    end
+	copy_dir($sdk_dir, $destination, true)
 
 	# Test cmake binaries exist
 	$cmake_bin = File.join(find_package_root("cmake"), $system_windows ? "win/cmake.exe" : $system_mac ? "mac/cmake" : "linux/cmake")
